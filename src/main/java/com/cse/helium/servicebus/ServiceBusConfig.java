@@ -15,13 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 public class ServiceBusConfig {
 
   @Autowired
-  private KeyVaultService keyVaultService;
+  private ConfigProperties configProperties;
 
   @Bean
   public TopicClient topicClient() throws InterruptedException, ServiceBusException {
 
-    String conn = keyVaultService.getSecret("ServiceBusConn");
-    String topic = keyVaultService.getSecret("ServiceBusTopic");
+    String conn = configProperties.getConnectionString();
+    String topic = configProperties.getTopic();
 
     log.info("conn: " + conn);
     log.info("topic: " + topic);
