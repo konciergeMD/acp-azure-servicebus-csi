@@ -1,0 +1,21 @@
+# Default values for helium.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+labels:
+    aadpodidbinding: sivamu1b-mi #should be value of $MI_Name from the output of aad-podid.sh
+  
+  image:
+    repository: retaildevcrew #The specific acr created for this environment
+    name: helium-typescript # The name of the image for the helium-csharp repo
+    tag: stable
+  
+  annotations:
+    linkerd.io/inject: enabled # Allows for the application to be injected into the Service Mesh
+  
+  ingress:
+    hosts:
+      - host: 20.37.128.188.nip.io # Replace the IP address with the IP of the nginx external IP. kubectl get svc -n ingress-nginx to see the correct IP
+        paths: /
+  
+  keyVaultName: sivamu1 # Replace with the name of the Key Vault that holds the secrets
+  
