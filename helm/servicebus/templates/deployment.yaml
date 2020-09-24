@@ -4,6 +4,7 @@ metadata:
   name: {{ include "servicebus.fullname" . }}
   labels:
     {{- include "servicebus.labels" . | nindent 4 }}
+    {{- toYaml .Values.labels | nindent 4 }}
 spec:
 {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -18,6 +19,7 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       labels:
+        {{- toYaml .Values.labels | nindent 8 }}
         {{- include "servicebus.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
@@ -39,11 +41,28 @@ spec:
               protocol: TCP
           env:
             - name: SERVICEBUS_CONNECTION_STRING
-              value: mysecret
+              valueFrom:
+                secretKeyRef:
+                  name: sbconn-secret
+                  key: key
             - name: SERVICEBUS_TOPIC
-              value: mytopic
+              valueFrom:
+                secretKeyRef:
+                  name: sbtopic-secret
+                  key: key
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "sb-provider"
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

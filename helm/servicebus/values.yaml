@@ -5,10 +5,13 @@
 replicaCount: 1
 
 image:
-  repository: alfredoaks.azurecr.io/service-bus
+  repository: sivamu1.azurecr.io/sbus
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
+
+labels:
+  aadpodidbinding: sivamu1b-mi
 
 imagePullSecrets: []
 nameOverride: ""
