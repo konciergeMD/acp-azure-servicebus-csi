@@ -4,7 +4,7 @@ metadata:
   name: sb-provider
 spec:
   provider: azure
-  secretObjects: # [OPTIONAL] SecretObject defines the desired state of synced K8s secret objects
+  secretObjects:
   - secretName: sbconn-secret
     type: Opaque
     data:
@@ -16,9 +16,9 @@ spec:
       - objectName: servicebustopic
         key: key
   parameters:
-    usePodIdentity: "true" # [OPTIONAL for Azure] if not provided, will default to "false"
-    keyvaultName: "sivamu1" # the name of the KeyVault
-    tenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    usePodIdentity: "true"
+    keyvaultName: "{{ .Values.keyVaultName }}" # the name of the KeyVault
+    tenantId: "{{ .Values.keyVaultTenantId }}"
     objects: |
       array:
         - |
