@@ -11,4 +11,3 @@ image:
 
 keyVaultName: %%KV_Name%% # Replace with the name of the Key Vault that holds the secrets
 keyVaultTenantId: %%KV_TenantID%% # Replace with the tenant id of the Key Vault that holds the secrets
-  
