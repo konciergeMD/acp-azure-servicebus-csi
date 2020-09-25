@@ -2,12 +2,12 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 labels:
-  aadpodidbinding: alfredocsi-mi #should be value of $MI_Name from the output of aad-podid.sh
+  aadpodidbinding: %%MI_Name%%-mi #should be value of $MI_Name from the output of aad-podid.sh
 
 image:
-  repository: alfredocsi.azurecr.io/sbus # The specific acr created for this environment
+  repository: %%MI_Name%%.azurecr.io/sbus # The specific acr created for this environment
   pullPolicy: IfNotPresent
   tag: latest
 
-keyVaultName: alfredocsi-kv # Replace with the name of the Key Vault that holds the secrets
-keyVaultTenantId: 7ab88ae4-5e07-4f96-8371-a493ee29d7af # Replace with the tenant id of the Key Vault that holds the secrets
+keyVaultName: %%MI_Name%%-kv # Replace with the name of the Key Vault that holds the secrets
+keyVaultTenantId: %%KV_TenantID%% # Replace with the tenant id of the Key Vault that holds the secrets
