@@ -1,17 +1,15 @@
 # Default values for servicebus.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
+labels:
+  aadpodidbinding: podid
 replicaCount: 1
 
 image:
-  repository: sivamu1.azurecr.io/sbus
+  repository: myrepo.azurecr.io/sbus
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
-
-labels:
-  aadpodidbinding: sivamu1b-mi
 
 imagePullSecrets: []
 nameOverride: ""
