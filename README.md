@@ -2,7 +2,7 @@
 
 ## Background
 
-Walkthrough demonstrating usage of CSI Driver and Azure Key Vault. Based on ([Helium AKS](https://github.com/retaildevcrews/helium/tree/main/docs/aks)) and ([CSI Driver](https://github.com/Azure/secrets-store-csi-driver-provider-azure))
+Walkthrough demonstrating usage of CSI Driver and Azure Key Vault. Based on [Helium AKS](https://github.com/retaildevcrews/helium/tree/main/docs/aks) and [CSI Driver](https://github.com/Azure/secrets-store-csi-driver-provider-azure)
 
 ### Azure Components in Use
 
@@ -101,7 +101,7 @@ az keyvault create -g $Name-rg -n $Name-kv
 ```bash
 
 # create the ACR
-az acr create --sku Standard --admin-enabled false -g $Name-rg -n $Name-acr
+az acr create --sku Standard --admin-enabled false -g $Name-rg -n $Name
 
 ```
 
@@ -114,10 +114,11 @@ az acr create --sku Standard --admin-enabled false -g $Name-rg -n $Name-acr
 #    Waiting for AAD role to propagate[################################    ]  90.0000%Could not create a
 #    role assignment for ACR. Are you an Owner on this subscription?
 
-az aks create --name $Name-aks --resource-group $Name-rg --location centralus --enable-cluster-autoscaler --min-count 3 --max-count 6 --node-count 3 --kubernetes-version 1.16.9 --attach-acr $Name-acr  --no-ssh-key --enable-managed-identity
+az aks create --name $Name-aks --resource-group $Name-rg --location centralus --enable-cluster-autoscaler --min-count 3 --max-count 6 --node-count 3 --kubernetes-version 1.16.13 --attach-acr $Name  --no-ssh-key --enable-managed-identity
 
 az aks get-credentials -n $Name-aks -g $Name-rg
 
+# Test if you can get nodes
 kubectl get nodes
 
 ```
@@ -153,8 +154,45 @@ az keyvault secret set -o table --vault-name $Name-kv --name "ServiceBusTopic" -
 
 ```
 
-### Create Managed Identity
+### Set Up Managed Identity
 
-### Give Managed Identity Access To Key Vault
+```bash
 
-## Build and Run
+chmod 777 ./helm/servicebus/aad-podid.sh
+
+./helm/servicebus/aad-podid.sh -a $Name-aks -r $Name-rg -m $Name-mi
+
+```
+
+## Build and Push Docker Image
+
+```bash
+
+mvn clean package
+
+docker build . -t $Name.azurecr.io/sbus:latest
+
+az acr login -n $Name
+
+docker push $Name.azurecr.io/sbus:latest
+
+```
+
+### Modify Values in YAML
+
+```bash
+
+sed -i "s/%%Name%%/${Name}/g" helm/servicebus/helm-config.yaml && \
+sed -i "s/%%KV_TenantID%%/$(az account show --query id -o tsv)/g" helm/servicebus/helm-config.yaml
+
+```
+
+### Helm Install CSI Driver and Service Bus
+
+```bash
+
+helm install csi-provider csi-secrets-store-provider-azure/csi-secrets-store-provider-azure
+
+helm install servicebus helm/servicebus -f helm/servicebus/helm-config.yaml
+
+```
