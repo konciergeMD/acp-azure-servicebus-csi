@@ -1,0 +1,29 @@
+apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+kind: SecretProviderClass
+metadata:
+  name: sb-provider
+spec:
+  provider: azure
+  secretObjects: # [OPTIONAL] SecretObject defines the desired state of synced K8s secret objects
+  - secretName: sbconn-secret
+    type: Opaque
+    data:
+      - objectName: servicebusconn
+        key: key
+  - secretName: sbtopic-secret
+    type: Opaque
+    data:
+      - objectName: servicebustopic
+        key: key
+  parameters:
+    usePodIdentity: "true" # [OPTIONAL for Azure] if not provided, will default to "false"
+    keyvaultName: "sivamu1" # the name of the KeyVault
+    tenantId: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    objects: |
+      array:
+        - |
+          objectName: servicebusconn
+          objectType: secret
+        - |
+          objectName: servicebustopic
+          objectType: secret
