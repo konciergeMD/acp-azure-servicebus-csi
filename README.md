@@ -65,8 +65,8 @@ az account set -s {subscription name or Id}
 export Name=[your unique name]
 
 ### if nslookup doesn't fail to resolve, change Name
-nslookup $Name.vault.azure.net
-nslookup $Name.azurecr.io
+nslookup ${Name}.vault.azure.net
+nslookup ${Name}.azurecr.io
 
 ```
 
@@ -79,7 +79,7 @@ nslookup $Name.azurecr.io
 ```bash
 
 # create the resource groups
-az group create -n $Name-rg -l centralus
+az group create -n ${Name}-rg -l centralus
 
 ```
 
@@ -90,7 +90,7 @@ az group create -n $Name-rg -l centralus
 ```bash
 
 ## create the KV
-az keyvault create -g $Name-rg -n $Name-kv
+az keyvault create -g ${Name}-rg -n ${Name}-kv
 
 ```
 
@@ -101,7 +101,7 @@ az keyvault create -g $Name-rg -n $Name-kv
 ```bash
 
 # create the ACR
-az acr create --sku Standard --admin-enabled false -g $Name-rg -n $Name
+az acr create --sku Standard --admin-enabled false -g ${Name}-rg -n $Name
 
 ```
 
@@ -114,9 +114,9 @@ az acr create --sku Standard --admin-enabled false -g $Name-rg -n $Name
 #    Waiting for AAD role to propagate[################################    ]  90.0000%Could not create a
 #    role assignment for ACR. Are you an Owner on this subscription?
 
-az aks create --name $Name-aks --resource-group $Name-rg --location centralus --enable-cluster-autoscaler --min-count 3 --max-count 6 --node-count 3 --kubernetes-version 1.16.13 --attach-acr $Name  --no-ssh-key --enable-managed-identity
+az aks create --name ${Name}-aks --resource-group ${Name}-rg --location centralus --enable-cluster-autoscaler --min-count 3 --max-count 6 --node-count 3 --kubernetes-version 1.16.13 --attach-acr $Name  --no-ssh-key --enable-managed-identity
 
-az aks get-credentials -n $Name-aks -g $Name-rg
+az aks get-credentials -n ${Name}-aks -g ${Name}-rg
 
 # Test if you can get nodes
 kubectl get nodes
@@ -129,19 +129,19 @@ kubectl get nodes
 
 # Create SB Namespace
 
-az servicebus namespace create -g $Name-rg -n $Name-sb-ns
+az servicebus namespace create -g ${Name}-rg -n ${Name}-sb-ns
 
 # Create SB Topic
 
-az servicebus topic create -g $Name-rg --namespace-name $Name-sb-ns -n $Name-sb-topic
+az servicebus topic create -g ${Name}-rg --namespace-name ${Name}-sb-ns -n ${Name}-sb-topic
 
 # Create SB Subscription
 
-az servicebus topic subscription create -g $Name-rg --namespace-name $Name-sb-ns --topic-name $Name-sb-topic -n $Name-sb-sub
+az servicebus topic subscription create -g $Name-rg --namespace-name $Name-sb-ns --topic-name ${Name}-sb-topic -n ${Name}-sb-sub
 
 # Get SB Access Key
 
-export SB_Access_Key=$(az servicebus namespace authorization-rule keys list -g $Name-rg --namespace-name $Name-sb-ns --name RootManageSharedAccessKey -o tsv --query primaryConnectionString)
+export SB_Access_Key='az servicebus namespace authorization-rule keys list -g $Name-rg --namespace-name $Name-sb-ns --name RootManageSharedAccessKey -o tsv --query primaryConnectionString'
 
 ```
 
@@ -149,8 +149,8 @@ export SB_Access_Key=$(az servicebus namespace authorization-rule keys list -g $
 
 ```bash
 
-az keyvault secret set -o table --vault-name $Name-kv --name "ServiceBusConn" --value $SB_Access_Key
-az keyvault secret set -o table --vault-name $Name-kv --name "ServiceBusTopic" --value $Name-sb-topic
+az keyvault secret set -o table --vault-name ${Name}-kv --name "ServiceBusConn" --value $(eval $SB_Access_Key)
+az keyvault secret set -o table --vault-name ${Name}-kv --name "ServiceBusTopic" --value ${Name}-sb-topic
 
 ```
 
@@ -158,9 +158,7 @@ az keyvault secret set -o table --vault-name $Name-kv --name "ServiceBusTopic" -
 
 ```bash
 
-chmod 777 ./helm/servicebus/aad-podid.sh
-
-./helm/servicebus/aad-podid.sh -a $Name-aks -r $Name-rg -m $Name-mi
+./helm/servicebus/aad-podid.sh -a ${Name}-aks -r ${Name}-rg -m ${Name}-mi -k ${Name}-kv
 
 ```
 
@@ -168,13 +166,11 @@ chmod 777 ./helm/servicebus/aad-podid.sh
 
 ```bash
 
-mvn clean package
-
-docker build . -t $Name.azurecr.io/sbus:latest
+docker build . -t ${Name}.azurecr.io/sbus:latest
 
 az acr login -n $Name
 
-docker push $Name.azurecr.io/sbus:latest
+docker push ${Name}.azurecr.io/sbus:latest
 
 ```
 
@@ -194,5 +190,13 @@ sed -i "s/%%KV_TenantID%%/$(az account show --query id -o tsv)/g" helm/servicebu
 helm install csi-provider csi-secrets-store-provider-azure/csi-secrets-store-provider-azure
 
 helm install servicebus helm/servicebus -f helm/servicebus/helm-config.yaml
+
+```
+
+### Clean up
+
+```bash
+
+az group delete --no-wait -y -n ${Name}-rg
 
 ```

@@ -1,16 +1,16 @@
 #!/bin/sh
 # Courtesy Of Helium Project https://github.com/retaildevcrews/helium/blob/main/docs/aks/aad-podid.sh
-while getopts :a:r:m: option
+while getopts :a:r:m:k: option
 do
  case "${option}" in
  a) AKS_NAME=${OPTARG};;
  r) AKS_RG=${OPTARG};;
  m) MI_NAME=${OPTARG};;
+ k) KV_NAME=${OPTARG};;
  *) echo "Please refer to usage guide on GitHub" >&2
     exit 1 ;;
  esac
 done
-
 
 
 echo "creating required variables"
@@ -116,7 +116,7 @@ if echo $AKS_IDENTITY_ID > /dev/null 2>&1 && echo $AKS_NODE_RG > /dev/null 2>&1;
 fi
 
 # write aad helm chart values file.
-cat << EOF > cluster/manifests/aadpodidentity/${MI_NAME}-values.yaml
+cat << EOF > helm/manifests/${MI_NAME}-values.yaml
 azureIdentities:
   - name: "${MI_NAME}"
     namespace: "default"
@@ -130,8 +130,16 @@ EOF
 
 echo "creating aad-pod-identity deployment in the default namespace with values file "
 if ! kubectl get deploy mic > /dev/null 2>&1; then
-    if ! helm install aad-pod-identity aad-pod-identity/aad-pod-identity -f cluster/manifests/aadpodidentity/${MI_NAME}-values.yaml --version 2.0.1; then
+    if ! helm install aad-pod-identity aad-pod-identity/aad-pod-identity -f helm/manifests/${MI_NAME}-values.yaml --version 2.0.1; then
         echo "ERROR: failed to create kubernetes aad-pod-idenity deployment"
+        exit 1
+    fi
+fi
+
+echo "assigning the Managed Identity access rights to the Azure Key Vault"
+if echo $KV_NAME > /dev/null 2>&1 && echo $MI_PrincID > /dev/null 2>&1; then
+    if ! az keyvault set-policy -n $KV_NAME --object-id $MI_PrincID --secret-permissions get list; then
+        echo "ERROR: failed to assign the Managed Identity access rights to the Azure Key Vault"
         exit 1
     fi
 fi
@@ -140,14 +148,4 @@ echo " "
 echo "******************************************************************************************************************"
 echo "AAD Pod Identity has been deployed to you cluster $AKS_NAME and is using $MI_NAME for its managed Identity"
 echo "Now you can configure ${MI_NAME} to have access rights to any azure resource based on Azure IAM roles"
-echo "******************************************************************************************************************"
-echo " "
-echo "******************************************************************************************************************"
-echo "To assign the MI to your keyvault run the following:"
-echo "az keyvault set-policy -n ${He_Name} --object-id ${MI_PrincID} --secret-permissions get list"
-echo "******************************************************************************************************************"
-echo " "
-echo "******************************************************************************************************************"
-echo "Add the label below to your deployment to assign an aad MI to those pods:"
-echo " aadpodidentity: ${MI_NAME}"
 echo "******************************************************************************************************************"
