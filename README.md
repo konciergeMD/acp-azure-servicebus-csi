@@ -197,8 +197,6 @@ helm repo add csi-secrets-store-provider-azure https://raw.githubusercontent.com
 
 helm install csi-provider csi-secrets-store-provider-azure/csi-secrets-store-provider-azure
 
-kubectl apply -f helm/servicebus/provider.yaml
-
 helm install servicebus helm/servicebus -f helm/servicebus/helm-config.yaml
 
 ```
@@ -207,12 +205,17 @@ helm install servicebus helm/servicebus -f helm/servicebus/helm-config.yaml
 
 ```bash
 
-# Check for Service Bus To Finish Installing
-kubectl get pods
+# Check whether the servicebus pods are running
+# Example output:
+# servicebus-6b7956d7bf-hsj9h  1/1   Running   0    2m12s
+kubectl get pods | grep servicebus
+
+# Check whether kubernetes secrets are created
+kubectl get secrets | grep sb 
 
 # Exec into pods to see secrets
-
-
+kubectl exec -it `kubectl get pods | grep servicebus | awk '{print $1}'` -- /bin/sh
+ls /mnt/secrets-store
 
 ```
 
