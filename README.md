@@ -23,6 +23,7 @@ Walkthrough demonstrating usage of CSI Driver and Azure Key Vault. Based on [Hel
 - Visual Studio Code (optional) ([download](https://code.visualstudio.com/download))
 - kubectl (install by using `sudo az aks install-cli`)
 - Helm v3 ([Install Instructions](https://helm.sh/docs/intro/install/))
+  - Using helm version > 3.3 is recommended (setup has been tested successfully with 3.3.4)
 - Java 11
 - Maven 1.6+
 
