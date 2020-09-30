@@ -62,7 +62,7 @@ az account set -s {subscription name or Id}
 # must start with a-z (only lowercase)
 export Name=[your unique name]
 
-export Location=centralus
+export Location=eastus
 
 ### if nslookup doesn't fail to resolve, change Name
 nslookup ${Name}.vault.azure.net
