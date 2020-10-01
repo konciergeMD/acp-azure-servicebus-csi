@@ -4,6 +4,10 @@
 labels:
   aadpodidbinding: %%Name%%-mi #should be value of $MI_Name from the output of aad-podid.sh
 
+aadpodid:
+  clientID: %%MI_Client_ID%%
+  resourceID: %%MI_Resource_ID%%
+
 image:
   repository: %%Name%%.azurecr.io/sbus # The specific acr created for this environment
   pullPolicy: IfNotPresent

@@ -5,6 +5,11 @@ labels:
   aadpodidbinding: podid
 replicaCount: 1
 
+# Values for aad pod identiy custom resource definitions
+aadpodid:
+  clientID: ""
+  resourceID: ""
+
 image:
   repository: myrepo.azurecr.io/sbus
   pullPolicy: IfNotPresent

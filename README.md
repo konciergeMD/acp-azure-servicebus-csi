@@ -161,7 +161,8 @@ az keyvault secret set -o table --vault-name ${Name}-kv --name "ServiceBusTopic"
 
 helm repo add aad-pod-identity https://raw.githubusercontent.com/Azure/aad-pod-identity/master/charts
 
-./helm/servicebus/aad-podid.sh -a ${Name}-aks -r ${Name}-rg -m ${Name}-mi -k ${Name}-kv
+# Note: This is sourcing the file so that the exported variables in the script can be used below when installing the service bus app.
+. ./helm/servicebus/aad-podid.sh -a ${Name}-aks -r ${Name}-rg -m ${Name}-mi -k ${Name}-kv
 
 ```
 
@@ -186,7 +187,12 @@ docker push ${Name}.azurecr.io/sbus:latest
 # Mac Users: alias sed='gsed'
 
 sed -i "s/%%Name%%/${Name}/g" helm/servicebus/helm-config.yaml && \
-sed -i "s/%%KV_TenantID%%/$(az account show --query id -o tsv)/g" helm/servicebus/helm-config.yaml
+sed -i "s/%%KV_TenantID%%/$(az account show --query id -o tsv)/g" helm/servicebus/helm-config.yaml && \
+sed -i "s/%%MI_Client_ID%%/${MI_ClientID}/g" helm/servicebus/helm-config.yaml && \
+sed -i "s|%%MI_Resource_ID%%|${MI_ResID}|g" helm/servicebus/helm-config.yaml
+# Notes:
+#   - This last replacement us using "|" as a separator because $MI_ResID has "/" characters.
+#   - MI_ClientID and MI_ResID are set when running ". ./helm/servicebus/aad-podid.sh ..."
 
 ```
 
@@ -212,7 +218,7 @@ helm install servicebus helm/servicebus -f helm/servicebus/helm-config.yaml
 kubectl get pods | grep servicebus
 
 # Check whether kubernetes secrets are created
-kubectl get secrets | grep sb 
+kubectl get secrets | grep sb
 
 # Exec into pods to see secrets
 kubectl exec -it `kubectl get pods | grep servicebus | awk '{print $1}'` -- /bin/sh

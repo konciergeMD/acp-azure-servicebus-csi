@@ -116,21 +116,21 @@ if echo $AKS_IDENTITY_ID > /dev/null 2>&1 && echo $AKS_NODE_RG > /dev/null 2>&1;
 fi
 
 # write aad helm chart values file.
-cat << EOF > helm/manifests/${MI_NAME}-values.yaml
-azureIdentities:
-  - name: "${MI_NAME}"
-    namespace: "default"
-    type: 0
-    resourceID: "${MI_ResID}"
-    clientID: "${MI_ClientID}"
-    binding:
-      name: "${MI_NAME}-binding"
-      selector: "${MI_NAME}"
-EOF
+# cat << EOF > helm/manifests/${MI_NAME}-values.yaml
+# azureIdentities:
+#   - name: "${MI_NAME}"
+#     namespace: "default"
+#     type: 0
+#     resourceID: "${MI_ResID}"
+#     clientID: "${MI_ClientID}"
+#     binding:
+#       name: "${MI_NAME}-binding"
+#       selector: "${MI_NAME}"
+# EOF
 
-echo "creating aad-pod-identity deployment in the default namespace with values file "
+echo "creating aad-pod-identity deployment in the default namespace"
 if ! kubectl get deploy mic > /dev/null 2>&1; then
-    if ! helm install aad-pod-identity aad-pod-identity/aad-pod-identity -f helm/manifests/${MI_NAME}-values.yaml --version 2.0.1; then
+    if ! helm install aad-pod-identity aad-pod-identity/aad-pod-identity --version 2.0.1; then
         echo "ERROR: failed to create kubernetes aad-pod-idenity deployment"
         exit 1
     fi

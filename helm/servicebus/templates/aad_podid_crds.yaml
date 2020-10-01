@@ -1,0 +1,22 @@
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentity
+metadata:
+  name: {{ .Values.labels.aadpodidbinding }}
+  labels:
+    {{- include "servicebus.labels" . | nindent 4 }}
+spec:
+  clientID: {{ .Values.aadpodid.clientID }}
+  resourceID: {{ .Values.aadpodid.resourceID }}
+  type: 0
+
+---
+
+apiVersion: aadpodidentity.k8s.io/v1
+kind: AzureIdentityBinding
+metadata:
+  labels:
+    {{- include "servicebus.labels" . | nindent 4 }}
+  name: {{ .Values.labels.aadpodidbinding }}-binding
+spec:
+  azureIdentity: {{ .Values.labels.aadpodidbinding }}
+  selector: {{ .Values.labels.aadpodidbinding }}
